@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Sudoku Solver - Animated</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; }
+    table { border-collapse: collapse; margin: 20px auto; }
+    td { border: 1px solid #000; }
+    input {
+      width: 40px; height: 40px; text-align: center;
+      font-size: 20px; border: none;
+    }
+    .highlight { background: lightgreen; }
+    .backtrack { background: pink; }
+    .btn { margin: 10px; padding: 10px 20px; font-size: 16px; }
+  </style>
+</head>
+<body>
+  <h1>Sudoku Solver (Animated)</h1>
+  <table>
+    <tbody>
+      <script>
+        for (let i = 0; i < 9; i++) {
+          document.write("<tr>");
+          for (let j = 0; j < 9; j++) {
+            document.write(`<td><input id="cell-${i}-${j}" maxlength="1"></td>`);
+          }
+          document.write("</tr>");
+        }
+      </script>
+    </tbody>
+  </table>
+  <button class="btn" onclick="startSolver()">Solve (Animated)</button>
+  <button class="btn" onclick="clearBoard()">Clear</button>
+
+  <script>
+    const delay = ms => new Promise(res => setTimeout(res, ms));
+
+    function getBoard() {
+      let board = [];
+      for (let i = 0; i < 9; i++) {
+        board[i] = [];
+        for (let j = 0; j < 9; j++) {
+          let val = document.getElementById(`cell-${i}-${j}`).value;
+          board[i][j] = val ? parseInt(val) : 0;
+        }
+      }
+      return board;
+    }
+
+    function setCell(row, col, val, cls) {
+      const cell = document.getElementById(`cell-${row}-${col}`);
+      cell.value = val || "";
+      cell.className = cls;
+    }
+
+    function isSafe(board, row, col, num) {
+      for (let x = 0; x < 9; x++) {
+        if (board[row][x] === num || board[x][col] === num) return false;
+      }
+      let sr = Math.floor(row / 3) * 3, sc = Math.floor(col / 3) * 3;
+      for (let i = 0; i < 3; i++)
+        for (let j = 0; j < 3; j++)
+          if (board[sr + i][sc + j] === num) return false;
+      return true;
+    }
+
+    async function solve(board, row = 0, col = 0) {
+      if (row === 9) return true;
+
+      let nextRow = col === 8 ? row + 1 : row;
+      let nextCol = col === 8 ? 0 : col + 1;
+
+      if (board[row][col] !== 0) return solve(board, nextRow, nextCol);
+
+      for (let num = 1; num <= 9; num++) {
+        if (isSafe(board, row, col, num)) {
+          board[row][col] = num;
+          setCell(row, col, num, "highlight");
+          await delay(50);
+
+          if (await solve(board, nextRow, nextCol)) return true;
+
+          board[row][col] = 0;
+          setCell(row, col, "", "backtrack");
+          await delay(50);
+        }
+      }
+      return false;
+    }
+
+    async function startSolver() {
+      let board = getBoard();
+      if (await solve(board)) {
+        alert("Sudoku Solved!");
+      } else {
+        alert("No solution exists!");
+      }
+    }
+
+    function clearBoard() {
+      for (let i = 0; i < 9; i++)
+        for (let j = 0; j < 9; j++) {
+          const cell = document.getElementById(`cell-${i}-${j}`);
+          cell.value = "";
+          cell.className = "";
+        }
+    }
+  </script>
+</body>
+</html>
